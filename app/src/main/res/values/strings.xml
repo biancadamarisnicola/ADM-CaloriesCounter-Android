@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Calorie counter</string>
+    <string name="edit_message">Search aliment</string>
+    <string name="button_send">Search</string>
+</resources>
