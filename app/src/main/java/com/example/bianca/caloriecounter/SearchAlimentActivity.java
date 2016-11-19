@@ -13,7 +13,7 @@ public class SearchAlimentActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_aliment);
         Intent intent = getIntent();
-        String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+        String message = intent.getStringExtra(App.EXTRA_MESSAGE);
         TextView textView = new TextView(this);
         textView.setTextSize(40);
         textView.setText(message);
