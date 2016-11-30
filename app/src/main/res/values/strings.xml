@@ -3,4 +3,8 @@
     <string name="app_name">Calorie counter</string>
     <string name="edit_message">Search aliment</string>
     <string name="button_send">Search</string>
+    <string name="api_url">http://192.168.0.101:3000</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="title_activity_login">Login</string>
 </resources>

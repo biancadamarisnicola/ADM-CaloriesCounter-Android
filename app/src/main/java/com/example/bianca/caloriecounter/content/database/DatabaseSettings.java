@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import com.example.bianca.caloriecounter.content.*;
 
 /**
  * Created by bianca on 19.11.2016.
@@ -23,7 +24,7 @@ public class DatabaseSettings extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "caloriescounter.db";
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_CREATE = "create table "
-            + TABLE_USERS + "( " + COLUMN_ID
+            + TABLE_ALIMENTS + "( " + COLUMN_ID
             + " integer primary key autoincrement, "
             + COLUMN_TOKEN + " text not null);";
 
@@ -38,7 +39,7 @@ public class DatabaseSettings extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ALIMENTS);
         onCreate(db);
     }
 
@@ -46,13 +47,13 @@ public class DatabaseSettings extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put(COLUMN_TOKEN, user.getToken());
         SQLiteDatabase db = getWritableDatabase();
-        db.insert(TABLE_USERS, null, cv);
+        db.insert(TABLE_ALIMENTS, null, cv);
         db.close();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public User getCurrentUser() {
-        Cursor c = getReadableDatabase().rawQuery("select token from " + TABLE_USERS, null, null);
+        Cursor c = getReadableDatabase().rawQuery("select token from " + TABLE_ALIMENTS, null, null);
         if (c.moveToFirst()) {
             return new User(null, null, c.getString(0));
         } else {
