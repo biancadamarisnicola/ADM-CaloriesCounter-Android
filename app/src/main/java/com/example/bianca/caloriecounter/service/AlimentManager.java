@@ -74,4 +74,16 @@ public class AlimentManager extends Observable{
         this.currentUser = currentUser;
         alimentRestClient.setUser(currentUser);
     }
+
+    public void subscribeChangeListener() {
+        //TODO: ADD socketCLient
+    }
+
+    public void unsubscribeChangeListener() {
+        //TODO:
+    }
+
+    public Cancellable getAlimentAsync(String string, OnSuccessListener<Aliment> onSuccessListener, OnErrorListener onErrorListener) {
+        
+    }
 }
