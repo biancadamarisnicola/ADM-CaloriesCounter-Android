@@ -12,6 +12,9 @@ import com.example.bianca.caloriecounter.util.OnErrorListener;
 import com.example.bianca.caloriecounter.util.OnSuccessListener;
 import com.example.bianca.caloriecounter.util.ResourceException;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Observable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -24,13 +27,14 @@ public class AlimentManager extends Observable{
     private static final String TAG = AlimentManager.class.getSimpleName();
     private final DatabaseSettings mDatabase;
 
-    private ConcurrentMap<String, Aliment> mAliments = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, Aliment> aliments = new ConcurrentHashMap<>();
     private final Context context;
     private AlimentRestClient mAlimentRestCLient;
     private String mToken;
     private User mUser;
     private AlimentRestClient alimentRestClient;
     private User currentUser;
+    private String alimentsLastUpdate;
 
     public AlimentManager(Context context) {
         this.context = context ;
@@ -83,7 +87,66 @@ public class AlimentManager extends Observable{
         //TODO:
     }
 
-    public Cancellable getAlimentAsync(String string, OnSuccessListener<Aliment> onSuccessListener, OnErrorListener onErrorListener) {
-        
+    public Cancellable getAlimentAsync(final String name, final OnSuccessListener<Aliment> onSuccessListener,
+                                       final OnErrorListener onErrorListener) {
+        Log.d(TAG, "get aliments async");
+        return alimentRestClient.readAsync(name, new OnSuccessListener<Aliment>(){
+
+                    @Override
+                    public void onSuccess(Aliment aliment) {
+                        Log.d(TAG, "read aliment async succedded");
+                        if (aliment == null){
+                            setChanged();
+                            aliments.remove(name);
+                        }else{
+                            if (!aliment.equals(aliments.get(aliment.getName()))){
+                                setChanged();
+                                aliments.put(name, aliment);
+                            }
+                        }
+                    }
+                }
+                ,onErrorListener);
+    }
+
+    public Cancellable getAlimentsAsync( final OnSuccessListener<List<Aliment>> onSuccessListener,
+                                         final OnErrorListener onErrorListener){
+        Log.d(TAG, "get aliments Async...");
+        return alimentRestClient.searchAsync(alimentsLastUpdate, new OnSuccessListener<List<Aliment>>() {
+            @Override
+            public void onSuccess(List<Aliment> result) {
+                Log.d(TAG, "get aliments async succeeded");
+                Log.d(TAG, String.valueOf(result.size()));
+                List<Aliment> alim = result;
+                if (alim != null) {
+                    updateCachedNotes(alim);
+                }else{
+                    Log.d(TAG, "Aliment list is null");
+                }
+                onSuccessListener.onSuccess(cachedNotesByUpdated());
+                notifyObservers();
+            }
+        }, onErrorListener);
+    }
+
+    private List<Aliment> cachedNotesByUpdated() {
+        List<Aliment> alim = new ArrayList<>(aliments.values());
+        Collections.sort(alim, new AlimentsComparator());
+        return alim;
+    }
+
+    private void updateCachedNotes(List<Aliment> alim) {
+        Log.d(TAG, "updateCachedNotes");
+        for (Aliment a : alim) {
+            aliments.put(a.getName(), a);
+        }
+        setChanged();
+    }
+
+    private class AlimentsComparator implements java.util.Comparator<Aliment> {
+        @Override
+        public int compare(Aliment n1, Aliment n2) {
+            return (n1.getName().compareTo(n2.getName()));
+        }
     }
 }

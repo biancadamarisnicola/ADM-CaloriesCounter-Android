@@ -6,14 +6,14 @@ package com.example.bianca.caloriecounter.content;
 
 public class Aliment {
     private String name;
-    private int calories;
-    private int proteins;
-    private int carbs;
-    private int fats;
+    private double calories;
+    private double proteins;
+    private double carbs;
+    private double fats;
 
     public Aliment(){}
 
-    public Aliment(String name, int calories, int proteins, int carbs, int fats) {
+    public Aliment(String name, double calories, double proteins, double carbs, double fats) {
         this.name = name;
         this.calories = calories;
         this.proteins = proteins;
@@ -29,35 +29,35 @@ public class Aliment {
         this.name = name;
     }
 
-    public int getCalories() {
+    public double getCalories() {
         return calories;
     }
 
-    public void setCalories(int calories) {
+    public void setCalories(double calories) {
         this.calories = calories;
     }
 
-    public int getProteins() {
+    public double getProteins() {
         return proteins;
     }
 
-    public void setProteins(int proteins) {
+    public void setProteins(double proteins) {
         this.proteins = proteins;
     }
 
-    public int getCarbs() {
+    public double getCarbs() {
         return carbs;
     }
 
-    public void setCarbs(int carbs) {
+    public void setCarbs(double carbs) {
         this.carbs = carbs;
     }
 
-    public int getFats() {
+    public double getFats() {
         return fats;
     }
 
-    public void setFats(int fats) {
+    public void setFats(double fats) {
         this.fats = fats;
     }
 

@@ -7,4 +7,6 @@
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="title_activity_login">Login</string>
+    <string name="aliment_detail">Aliment details</string>
+    <string name="title_aliment_detail">Aliment detail</string>
 </resources>

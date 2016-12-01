@@ -1,10 +1,10 @@
 package com.example.bianca.caloriecounter;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +34,11 @@ public class AlimentDetailFragment extends Fragment {
     private CollapsingToolbarLayout appBarLayout;
 
 
-    Override
+    public AlimentDetailFragment() {
+        super();
+    }
+
+    @Override
     public void onAttach(Context context) {
         Log.d(TAG, "onAttach");
         super.onAttach(context);
@@ -71,12 +75,14 @@ public class AlimentDetailFragment extends Fragment {
     }
 
     private void fetchAlimentAsync() {
+        Log.d(TAG, "fetch aliment async");
         fetchAlimAsync = myApp.getAlimentManager().getAlimentAsync(
                 getArguments().getString(ALIMENT_NAME),
                 new OnSuccessListener<Aliment>() {
 
                     @Override
                     public void onSuccess(final Aliment al) {
+                        Log.d(TAG, al.toString());
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -89,6 +95,7 @@ public class AlimentDetailFragment extends Fragment {
 
                     @Override
                     public void onError(final Exception e) {
+                        Log.d(TAG, e.toString());
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -100,11 +107,13 @@ public class AlimentDetailFragment extends Fragment {
     }
 
     private void fillAlimentDetails() {
+        Log.d(TAG, "Aliment is null");
         if (aliment != null) {
+            Log.d(TAG, aliment.toString());
             if (appBarLayout != null) {
                 appBarLayout.setTitle(aliment.getName());
             }
-            alimentsTextView.setText(aliment.getName());
+            alimentsTextView.setText(aliment.toString());
         }
     }
 }

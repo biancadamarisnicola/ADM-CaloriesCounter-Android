@@ -32,24 +32,26 @@ public class SearchAlimentActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private boolean alimentLoaded;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+        myApp = (App) getApplication();
         setContentView(R.layout.activity_search_aliment);
 //        Intent intent = getIntent();
 //        String message = intent.getStringExtra(App.EXTRA_MESSAGE);
 //        TextView textView = new TextView(this);
 //        textView.setTextSize(40);
 //        textView.setText(message);
-        setupToolbar();
+        //setupToolbar();
         setupFloatingActionBar();
         setupRecyclerView();
         checkTwoPaneMode();
     }
 
     @Override
-    protected void onStart(){
+    protected void onStart() {
         Log.d(TAG, "onSTart");
         super.onStart();
         startGetAlimentsAsync();
@@ -70,6 +72,7 @@ public class SearchAlimentActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                Log.d(TAG, aliments.toString());
                                 showContent(aliments);
                             }
                         });
@@ -154,7 +157,7 @@ public class SearchAlimentActivity extends AppCompatActivity {
 
     private void setupToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+//        setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
     }
 
@@ -174,10 +177,11 @@ public class SearchAlimentActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
+        public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.item = aliments.get(position);
             holder.idView.setText(aliments.get(position).getName());
-            holder.contentView.setText(aliments.get(position).getCalories());
+           // holder.contentView.setText((int) aliments.get(position).getCalories());
+            holder.contentView.setText(String.valueOf(aliments.get(position).getCalories()));
 
             holder.view.setOnClickListener(new View.OnClickListener() {
                 @Override

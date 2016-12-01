@@ -6,16 +6,15 @@ package com.example.bianca.caloriecounter.mapping;
 
 public class Api {
     public static class Note {
-        public static final String URL = "api/note";
-        public static final String NOTE_CREATED = "note/created";
-        public static final String NOTE_UPDATED = "note/updated";
-        public static final String NOTE_DELETED = "note/deleted";
-        public static final String _ID = "_id";
-        public static final String TEXT = "text";
-        public static final String STATUS = "status";
-        public static final String UPDATED = "updated";
-        public static final String USER_ID = "user";
-        public static final String VERSION = "version";
+        public static final String URL = "api/aliment";
+        public static final String ALIMENT_CREATED = "aliment/created";
+        public static final String ALIMENT_UPDATED = "aliment/updated";
+        public static final String ALIMENT_DELETED = "aliment/deleted";
+        public static final String NAME = "name";
+        public static final String CALORIES = "calories";
+        public static final String PROTEINS = "proteins";
+        public static final String FATS = "fats";
+        public static final String CARBS = "carbs";
     }
     public static class Auth {
         public static final String TOKEN = "token";
