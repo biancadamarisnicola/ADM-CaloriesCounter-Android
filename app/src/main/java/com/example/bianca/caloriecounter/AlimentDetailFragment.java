@@ -2,13 +2,18 @@ package com.example.bianca.caloriecounter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.bianca.caloriecounter.content.Aliment;
@@ -23,7 +28,6 @@ import com.example.bianca.caloriecounter.util.OnSuccessListener;
 public class AlimentDetailFragment extends Fragment {
     public static final String ALIMENT_NAME = "aliment_name";
     private static final String TAG = AlimentDetailFragment.class.getSimpleName();
-    ;
     private Bundle arguments;
     private Aliment aliment;
 
@@ -33,6 +37,9 @@ public class AlimentDetailFragment extends Fragment {
     private TextView alimentsTextView;
     private CollapsingToolbarLayout appBarLayout;
 
+    private FloatingActionButton editFab;
+    private FloatingActionButton deleteFab;
+    private ImageView warnind;
 
     public AlimentDetailFragment() {
         super();
@@ -53,7 +60,52 @@ public class AlimentDetailFragment extends Fragment {
             // In a real-world scenario, use a Loader
             // to load content from a content provider.
             Activity activity = this.getActivity();
+            warnind = (ImageView) activity.findViewById(R.id.warning_image);
+            Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.warning);
+            warnind.setAnimation(animation);
             appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
+            editFab = (FloatingActionButton) activity.findViewById(R.id.edit_fab);
+            editFab.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    Log.d(TAG, "edit aliment");
+                    Context context = v.getContext();
+                    Intent intent = new Intent(context, EditAlimentActivity.class);
+                    intent.putExtra("Aliment", String.valueOf(aliment));
+                    context.startActivity(intent);
+                }
+            });
+            deleteFab = (FloatingActionButton) activity.findViewById(R.id.delete_fab);
+            deleteFab.setOnClickListener(new View.OnClickListener() {
+                public void onClick(final View v) {
+                    Log.d(TAG, "delete aliment");
+                    fetchAlimAsync = myApp.getAlimentManager().deleteAlimentAsync(
+                            aliment.getName(),
+                            new OnSuccessListener<Aliment>() {
+
+                                @Override
+                                public void onSuccess(final Aliment al) {
+                                    getActivity().runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            startActivity(new Intent(v.getContext(), SearchAlimentActivity.class));
+                                        }
+                                    });
+                                }
+                            }, new OnErrorListener() {
+
+                                @Override
+                                public void onError(final Exception e) {
+                                    Log.d(TAG, e.toString());
+                                    getActivity().runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            DialogUtils.showError(getActivity(), e);
+                                        }
+                                    });
+                                }
+                            });
+                }
+            });
         }
     }
 
@@ -82,6 +134,7 @@ public class AlimentDetailFragment extends Fragment {
 
                     @Override
                     public void onSuccess(final Aliment al) {
+                        Log.d(TAG, "CHECK");
                         Log.d(TAG, al.toString());
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
@@ -107,13 +160,15 @@ public class AlimentDetailFragment extends Fragment {
     }
 
     private void fillAlimentDetails() {
-        Log.d(TAG, "Aliment is null");
         if (aliment != null) {
             Log.d(TAG, aliment.toString());
             if (appBarLayout != null) {
                 appBarLayout.setTitle(aliment.getName());
+                Log.d(TAG, "Title "+String.valueOf(appBarLayout.getTitle()));
             }
-            alimentsTextView.setText(aliment.toString());
+            alimentsTextView.setText(aliment.toStringFancy());
+        }else{
+            Log.d(TAG, "Aliment is null");
         }
     }
 }

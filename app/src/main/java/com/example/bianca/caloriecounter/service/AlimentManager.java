@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentMap;
  * Created by bianca on 19.11.2016.
  */
 
-public class AlimentManager extends Observable{
+public class AlimentManager extends Observable {
     private static final String TAG = AlimentManager.class.getSimpleName();
     private final DatabaseSettings mDatabase;
 
@@ -37,7 +37,7 @@ public class AlimentManager extends Observable{
     private String alimentsLastUpdate;
 
     public AlimentManager(Context context) {
-        this.context = context ;
+        this.context = context;
         this.mDatabase = new DatabaseSettings(context);
     }
 
@@ -50,12 +50,12 @@ public class AlimentManager extends Observable{
         this.alimentRestClient = alimentRestClient;
     }
 
-    public Cancellable loginAsync( String username, String pass, final OnSuccessListener<String> successListener,
-                                   final OnErrorListener errorListener){
+    public Cancellable loginAsync(String username, String pass, final OnSuccessListener<String> successListener,
+                                  final OnErrorListener errorListener) {
         final User user = new User(username, pass);
-        Log.d(TAG, "User: "+user.toString());
+        Log.d(TAG, "User: " + user.toString());
         return alimentRestClient.getToken(user,
-                new OnSuccessListener<String>(){
+                new OnSuccessListener<String>() {
 
                     @Override
                     public void onSuccess(String tok) {
@@ -65,12 +65,12 @@ public class AlimentManager extends Observable{
                             setCurrentUser(user);
                             mDatabase.saveUser(user);
                             successListener.onSuccess(mToken);
-                        }else{
+                        } else {
                             errorListener.onError(new ResourceException(new IllegalArgumentException("Invalid credentials!")));
                         }
                     }
                 }
-                ,errorListener);
+                , errorListener);
 
     }
 
@@ -89,28 +89,62 @@ public class AlimentManager extends Observable{
 
     public Cancellable getAlimentAsync(final String name, final OnSuccessListener<Aliment> onSuccessListener,
                                        final OnErrorListener onErrorListener) {
-        Log.d(TAG, "get aliments async");
-        return alimentRestClient.readAsync(name, new OnSuccessListener<Aliment>(){
+        Log.d(TAG, "get aliment async");
+        return alimentRestClient.readAsync(name, new OnSuccessListener<Aliment>() {
 
                     @Override
                     public void onSuccess(Aliment aliment) {
                         Log.d(TAG, "read aliment async succedded");
-                        if (aliment == null){
+                        if (aliment == null) {
                             setChanged();
                             aliments.remove(name);
-                        }else{
-                            if (!aliment.equals(aliments.get(aliment.getName()))){
+                        } else {
+                            Log.d(TAG, "Aliment not null");
+                            if (!aliment.equals(aliments.get(aliment.getName()))) {
                                 setChanged();
                                 aliments.put(name, aliment);
+                                Log.d(TAG, name + " fetched");
                             }
                         }
+                        onSuccessListener.onSuccess(aliment);
+                        notifyObservers();
                     }
                 }
-                ,onErrorListener);
+                , onErrorListener);
     }
 
-    public Cancellable getAlimentsAsync( final OnSuccessListener<List<Aliment>> onSuccessListener,
-                                         final OnErrorListener onErrorListener){
+    public Cancellable deleteAlimentAsync(final String name, final OnSuccessListener<Aliment> onSuccessListener,
+                                       final OnErrorListener onErrorListener) {
+        Log.d(TAG, "delete aliment async");
+        return alimentRestClient.deleteAsync(name, new OnSuccessListener<Aliment>() {
+
+                    @Override
+                    public void onSuccess(Aliment aliment) {
+                        Log.d(TAG, "delete aliment async succedded");
+                        onSuccessListener.onSuccess(aliment);
+                        notifyObservers();
+                    }
+                }
+                , onErrorListener);
+    }
+
+    public Cancellable saveAlimentAsync(final Aliment aliment, boolean update, final OnSuccessListener<Aliment> onSuccessListener,
+                                        final OnErrorListener onErrorListener) {
+        Log.d(TAG, "save aliment async");
+        return alimentRestClient.saveAsync(aliment, update, new OnSuccessListener<Aliment>() {
+
+                    @Override
+                    public void onSuccess(Aliment aliment) {
+                        Log.d(TAG, "save aliment async succedded");
+                        onSuccessListener.onSuccess(aliment);
+                        notifyObservers();
+                    }
+                }
+                , onErrorListener);
+    }
+
+    public Cancellable getAlimentsAsync(final OnSuccessListener<List<Aliment>> onSuccessListener,
+                                        final OnErrorListener onErrorListener) {
         Log.d(TAG, "get aliments Async...");
         return alimentRestClient.searchAsync(alimentsLastUpdate, new OnSuccessListener<List<Aliment>>() {
             @Override
@@ -120,7 +154,7 @@ public class AlimentManager extends Observable{
                 List<Aliment> alim = result;
                 if (alim != null) {
                     updateCachedNotes(alim);
-                }else{
+                } else {
                     Log.d(TAG, "Aliment list is null");
                 }
                 onSuccessListener.onSuccess(cachedNotesByUpdated());
@@ -131,6 +165,7 @@ public class AlimentManager extends Observable{
 
     private List<Aliment> cachedNotesByUpdated() {
         List<Aliment> alim = new ArrayList<>(aliments.values());
+        Log.d(TAG, String.valueOf(alim.size()));
         Collections.sort(alim, new AlimentsComparator());
         return alim;
     }

@@ -17,6 +17,9 @@ import com.example.bianca.caloriecounter.util.OnErrorListener;
 import com.example.bianca.caloriecounter.util.OnSuccessListener;
 import com.example.bianca.caloriecounter.util.ResourceException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -50,6 +53,8 @@ public class AlimentRestClient {
     private final String signupUrl;
     private Socket socket;
     private User user;
+    public static final MediaType JSON
+            = MediaType.parse("application/json; charset=utf-8");
 
     public AlimentRestClient(Context cont) {
         this.context = cont;
@@ -144,6 +149,66 @@ public class AlimentRestClient {
                         Log.d(TAG, String.valueOf(result.size()));
                         return result;
 
+                    }
+                },
+                onSuccessListener,
+                onErrorListener
+        );
+    }
+
+    public Cancellable deleteAsync(String name, OnSuccessListener<Aliment> onSuccessListener, OnErrorListener onErrorListener) {
+        Request.Builder builder = new Request.Builder().url(String.format("%s/%s", alimentUrl, name));
+        JSONObject jsonObject= new JSONObject();
+        try {
+            jsonObject.put("name", name);
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        RequestBody body = RequestBody.create(JSON, jsonObject.toString());
+        builder.method("DELETE", body);
+        return new CancellableOkHttpAsync<Aliment>(
+                builder.build(),
+                new ResponseReader<Aliment>() {
+                    @Override
+                    public Aliment read(Response response) throws Exception {
+                        if (response.code() == 200) {
+                            JsonReader reader = new JsonReader(new InputStreamReader(response.body().byteStream(), UTF_8));
+                            return new AlimentReader().read(reader);
+                        } else { //404 not found
+                            return null;
+                        }
+                    }
+                },
+                onSuccessListener,
+                onErrorListener
+        );
+    }
+
+    public Cancellable saveAsync(Aliment aliment, boolean update, OnSuccessListener<Aliment> onSuccessListener, OnErrorListener onErrorListener) {
+        Request.Builder builder = new Request.Builder().url(String.format("%s/%s", alimentUrl, aliment.getName()));
+        Log.d(TAG,aliment.toJsonString());
+        RequestBody body = RequestBody.create(JSON, aliment.toJsonString());
+        if (update) {
+            builder.method("PUT", body);
+            Log.d(TAG, "PUT methd");
+        }else{
+            builder = new Request.Builder().url(String.format("%s", alimentUrl));
+            builder.method("POST", body);
+            Log.d(TAG, "POST methd");
+        }
+        return new CancellableOkHttpAsync<Aliment>(
+                builder.build(),
+                new ResponseReader<Aliment>() {
+                    @Override
+                    public Aliment read(Response response) throws Exception {
+                        Log.d(TAG, String.valueOf(response.code()));
+                        if (response.code() == 200) {
+                            JsonReader reader = new JsonReader(new InputStreamReader(response.body().byteStream(), UTF_8));
+                            return new AlimentReader().read(reader);
+                        } else { //404 not found
+                            return null;
+                        }
                     }
                 },
                 onSuccessListener,

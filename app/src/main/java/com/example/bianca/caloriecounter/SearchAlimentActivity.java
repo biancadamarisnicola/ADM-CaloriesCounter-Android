@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -31,6 +30,7 @@ public class SearchAlimentActivity extends AppCompatActivity {
     private View contentLoadingView;
     private RecyclerView recyclerView;
     private boolean alimentLoaded;
+    private AlimentRecyclerViewAdapter adapter;
 
 
     @Override
@@ -67,13 +67,12 @@ public class SearchAlimentActivity extends AppCompatActivity {
         getAlimentsAsyncCall = myApp.getAlimentManager().getAlimentsAsync(
                 new OnSuccessListener<List<Aliment>>() {
                     @Override
-                    public void onSuccess(final List<Aliment> aliments) {
+                    public void onSuccess(final List<Aliment> alim) {
                         Log.d(TAG, "getAlimentsAsyncCall - success");
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Log.d(TAG, aliments.toString());
-                                showContent(aliments);
+                                showContent(alim);
                             }
                         });
                     }
@@ -102,9 +101,11 @@ public class SearchAlimentActivity extends AppCompatActivity {
 
     private void showContent(List<Aliment> aliments) {
         Log.d(TAG, "showContent");
-        recyclerView.setAdapter(new AlimentRecyclerViewAdapter(aliments));
+        adapter = new AlimentRecyclerViewAdapter(aliments);
+        recyclerView.setAdapter(adapter);
         contentLoadingView.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
+        adapter.notifyDataSetChanged();
     }
 
     private void showLoadingIndicator() {
@@ -149,8 +150,10 @@ public class SearchAlimentActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Log.d(TAG, "Create new aliment");
+                Context context = view.getContext();
+                Intent intent = new Intent(context, EditAlimentActivity.class);
+                context.startActivity(intent);
             }
         });
     }
@@ -169,6 +172,7 @@ public class SearchAlimentActivity extends AppCompatActivity {
             aliments = alims;
         }
 
+        // Create new views (invoked by the layout manager)
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
@@ -176,12 +180,13 @@ public class SearchAlimentActivity extends AppCompatActivity {
             return new ViewHolder(view);
         }
 
+        // Replace the contents of a view (invoked by the layout manager)
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
+            Log.d(TAG, "onBindViewHolder "+aliments.get(position));
             holder.item = aliments.get(position);
             holder.idView.setText(aliments.get(position).getName());
-           // holder.contentView.setText((int) aliments.get(position).getCalories());
-            holder.contentView.setText(String.valueOf(aliments.get(position).getCalories()));
+            holder.contentView.setText(" - calories: "+String.valueOf(aliments.get(position).getCalories()));
 
             holder.view.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -204,11 +209,16 @@ public class SearchAlimentActivity extends AppCompatActivity {
             });
         }
 
+        // Return the size of your dataset (invoked by the layout manager)
         @Override
         public int getItemCount() {
             return aliments.size();
         }
 
+
+        // Provide a reference to the views for each data item
+        // Complex data items may need more than one view per item, and
+        // you provide access to all the views for a data item in a view holder
         public class ViewHolder extends RecyclerView.ViewHolder {
             public final View view;
             public final TextView idView;

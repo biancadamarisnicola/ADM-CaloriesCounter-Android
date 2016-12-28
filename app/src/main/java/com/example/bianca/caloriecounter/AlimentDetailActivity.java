@@ -2,14 +2,12 @@ package com.example.bianca.caloriecounter;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
 
 /**
  * Created by bianca on 30.11.2016.
@@ -26,13 +24,6 @@ public class AlimentDetailActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //finish();
-            }
-        });
 
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
@@ -45,6 +36,8 @@ public class AlimentDetailActivity extends AppCompatActivity {
                     getIntent().getStringExtra(AlimentDetailFragment.ALIMENT_NAME));
             AlimentDetailFragment fragment = new AlimentDetailFragment();
             fragment.setArguments(arguments);
+            Log.d(TAG,"__________________________________");
+            Log.d(TAG, fragment.getArguments().toString());
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.aliment_detail_container, fragment)
                     .commit();

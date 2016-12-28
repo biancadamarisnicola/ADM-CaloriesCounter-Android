@@ -63,7 +63,7 @@ public class LoginActivity extends AppCompatActivity {
         EditText passwordEditText = (EditText) findViewById(R.id.password);
         cancellable = alimentManager
                 .loginAsync(
-                        usernameEditText.getText().toString(), passwordEditText.getText().toString(),
+                    usernameEditText.getText().toString(), passwordEditText.getText().toString(),
                         new OnSuccessListener<String>() {
                             @Override
                             public void onSuccess(String s) {

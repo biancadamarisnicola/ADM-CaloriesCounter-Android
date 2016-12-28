@@ -12,12 +12,12 @@
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay">
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            android:background="?attr/colorAccent" />
+        <!--<android.support.v7.widget.Toolbar-->
+            <!--android:id="@+id/toolbar"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--app:popupTheme="@style/AppTheme.PopupOverlay"-->
+            <!--android:background="?attr/colorAccent" />-->
 
     </android.support.design.widget.AppBarLayout>
 
@@ -34,6 +34,14 @@
             android:layout_gravity="center_vertical"
             android:visibility="gone"/>
 
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:alpha=".25"
+            app:srcCompat="@drawable/healthy"
+            android:id="@+id/imageView" />
+
         <include layout="@layout/aliment_list" />
     </FrameLayout>
 
@@ -43,6 +51,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@drawable/ic_action_search" />
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </android.support.design.widget.CoordinatorLayout>

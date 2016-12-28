@@ -1,5 +1,8 @@
 package com.example.bianca.caloriecounter.content;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * Created by bianca on 19.11.2016.
  */
@@ -65,10 +68,35 @@ public class Aliment {
     public String toString() {
         return "Aliment{" +
                 "name='" + name + '\'' +
-                ", calories=" + calories +
-                ", proteins=" + proteins +
-                ", carbs=" + carbs +
-                ", fats=" + fats +
+                ", calories = " + calories +
+                ", proteins = " + proteins +
+                ", carbs = " + carbs +
+                ", fats = " + fats +
                 '}';
+    }
+
+    public String toStringFancy() {
+        return "\nname = '" + name + '\'' +
+                "\ncalories = " + calories +
+                "\nproteins = " + proteins +
+                "\ncarbs = " + carbs +
+                "\nfats = " + fats;
+    }
+
+    public String toJsonString() {
+        JSONObject jsonObject= new JSONObject();
+        try {
+            jsonObject.put("name", name);
+            jsonObject.put("calories", calories);
+            jsonObject.put("proteins", proteins);
+            jsonObject.put("carbs", carbs);
+            jsonObject.put("fats", fats);
+
+            return jsonObject.toString();
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return "";
+        }
     }
 }
