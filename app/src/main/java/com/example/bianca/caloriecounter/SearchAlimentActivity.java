@@ -2,6 +2,10 @@ package com.example.bianca.caloriecounter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.bianca.caloriecounter.content.Aliment;
 import com.example.bianca.caloriecounter.util.Cancellable;
@@ -21,7 +26,7 @@ import com.example.bianca.caloriecounter.util.OnSuccessListener;
 
 import java.util.List;
 
-public class SearchAlimentActivity extends AppCompatActivity {
+public class SearchAlimentActivity extends AppCompatActivity implements SensorEventListener {
 
     public static final String TAG = SearchAlimentActivity.class.getSimpleName();
     private App myApp;
@@ -32,6 +37,9 @@ public class SearchAlimentActivity extends AppCompatActivity {
     private boolean alimentLoaded;
     private AlimentRecyclerViewAdapter adapter;
 
+    private SensorManager sensorManager;
+    private TextView count;
+    boolean activityRunning;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +47,9 @@ public class SearchAlimentActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         myApp = (App) getApplication();
         setContentView(R.layout.activity_search_aliment);
+
+        count = (TextView) findViewById(R.id.step_count);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 //        Intent intent = getIntent();
 //        String message = intent.getStringExtra(App.EXTRA_MESSAGE);
 //        TextView textView = new TextView(this);
@@ -48,6 +59,27 @@ public class SearchAlimentActivity extends AppCompatActivity {
         setupFloatingActionBar();
         setupRecyclerView();
         checkTwoPaneMode();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        activityRunning = true;
+        Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        if (countSensor != null) {
+            sensorManager.registerListener(this, countSensor, SensorManager.SENSOR_DELAY_UI);
+        } else {
+            Toast.makeText(this, "Count sensor not available!", Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        activityRunning = false;
+        // if you unregister the last listener, the hardware will stop detecting step events
+//        sensorManager.unregisterListener(this);
     }
 
     @Override
@@ -162,6 +194,19 @@ public class SearchAlimentActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (activityRunning) {
+            Log.d(TAG, "pedometer "+String.valueOf(event.values[0]));
+            count.setText(String.valueOf(event.values[0]));
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 
     private class AlimentRecyclerViewAdapter extends RecyclerView.Adapter<AlimentRecyclerViewAdapter.ViewHolder> {
