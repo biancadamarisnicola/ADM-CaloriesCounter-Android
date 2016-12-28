@@ -40,6 +40,7 @@ public class AlimentDetailFragment extends Fragment {
     private FloatingActionButton editFab;
     private FloatingActionButton deleteFab;
     private ImageView warnind;
+//    private int id = getResources().getIdentifier("@:drawable/junk_food.jpg", null, null);
 
     public AlimentDetailFragment() {
         super();
@@ -167,6 +168,10 @@ public class AlimentDetailFragment extends Fragment {
                 Log.d(TAG, "Title "+String.valueOf(appBarLayout.getTitle()));
             }
             alimentsTextView.setText(aliment.toStringFancy());
+            if (aliment.getFats()> 15.0){
+                Log.d(TAG, "JUNG_FOOD");
+                warnind.setImageResource(R.drawable.junk_food);
+            }
         }else{
             Log.d(TAG, "Aliment is null");
         }
