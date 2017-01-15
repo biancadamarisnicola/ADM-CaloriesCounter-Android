@@ -1,6 +1,8 @@
 package com.example.bianca.caloriecounter.service;
 
 import android.content.Context;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.example.bianca.caloriecounter.content.Aliment;
@@ -103,6 +105,7 @@ public class AlimentManager extends Observable {
                             if (!aliment.equals(aliments.get(aliment.getName()))) {
                                 setChanged();
                                 aliments.put(name, aliment);
+                                mDatabase.saveAliment(aliment);
                                 Log.d(TAG, name + " fetched");
                             }
                         }
@@ -121,6 +124,7 @@ public class AlimentManager extends Observable {
                     @Override
                     public void onSuccess(Aliment aliment) {
                         Log.d(TAG, "delete aliment async succedded");
+                        mDatabase.deleteAliment(aliment);
                         onSuccessListener.onSuccess(aliment);
                         notifyObservers();
                     }
@@ -137,6 +141,7 @@ public class AlimentManager extends Observable {
                     public void onSuccess(Aliment aliment) {
                         Log.d(TAG, "save aliment async succedded");
                         onSuccessListener.onSuccess(aliment);
+                        mDatabase.saveAliment(aliment);
                         notifyObservers();
                     }
                 }
@@ -153,7 +158,7 @@ public class AlimentManager extends Observable {
                 Log.d(TAG, String.valueOf(result.size()));
                 List<Aliment> alim = result;
                 if (alim != null) {
-                    updateCachedNotes(alim);
+                    updateCachedAliments(alim);
                 } else {
                     Log.d(TAG, "Aliment list is null");
                 }
@@ -170,12 +175,24 @@ public class AlimentManager extends Observable {
         return alim;
     }
 
-    private void updateCachedNotes(List<Aliment> alim) {
-        Log.d(TAG, "updateCachedNotes");
+    private void updateCachedAliments(List<Aliment> alim) {
+        Log.d(TAG, "updateCachedAliments");
+        mDatabase.deleteAllAliments();
+        aliments = new ConcurrentHashMap<>();
         for (Aliment a : alim) {
             aliments.put(a.getName(), a);
+            mDatabase.saveAliment(a);
         }
         setChanged();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    public List<Aliment> getAlimentsFromDatabase() {
+        return mDatabase.getAliments();
+    }
+
+    public Aliment getAlimentFromDatabase(String alimentName) {
+        return mDatabase.getAliment(alimentName);
     }
 
     private class AlimentsComparator implements java.util.Comparator<Aliment> {

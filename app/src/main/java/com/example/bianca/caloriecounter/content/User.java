@@ -14,6 +14,12 @@ public class User {
         mPassword = password;
     }
 
+    public User(String username, String password, String token) {
+        mUsername = username;
+        mPassword = password;
+        mToken = token;
+    }
+
     public User(Object o, Object o1, String token) {
         mToken = token;
     }

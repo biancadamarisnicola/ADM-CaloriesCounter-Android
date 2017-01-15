@@ -3,7 +3,7 @@
     <string name="app_name">Calorie counter</string>
     <string name="edit_message">Search aliment</string>
     <string name="button_send">Search</string>
-    <string name="api_url">http://192.168.0.104:3000</string>
+    <string name="api_url">http://192.168.0.105:3000</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="title_activity_login">Login</string>
@@ -100,4 +100,5 @@
     <string name="proteins">Proteins</string>
     <string name="fats">Fats</string>
     <string name="carbs">Carbs</string>
+    <string name="title_activity_pie_chart">PieChart</string>
 </resources>

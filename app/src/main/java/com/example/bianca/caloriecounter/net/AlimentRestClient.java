@@ -123,6 +123,7 @@ public class AlimentRestClient {
 
     private void addAuthToken(Request.Builder builder) {
         User u = user;
+        Log.d(TAG, "Add token to request "+user.getToken());
         if (u != null) {
             builder.header("Authorization", "Bearer " + user.getToken());
         }
@@ -167,6 +168,7 @@ public class AlimentRestClient {
         }
         RequestBody body = RequestBody.create(JSON, jsonObject.toString());
         builder.method("DELETE", body);
+        addAuthToken(builder);
         return new CancellableOkHttpAsync<Aliment>(
                 builder.build(),
                 new ResponseReader<Aliment>() {
@@ -187,6 +189,7 @@ public class AlimentRestClient {
 
     public Cancellable saveAsync(Aliment aliment, boolean update, OnSuccessListener<Aliment> onSuccessListener, OnErrorListener onErrorListener) {
         Request.Builder builder = new Request.Builder().url(String.format("%s/%s", alimentUrl, aliment.getName()));
+        addAuthToken(builder);
         Log.d(TAG,aliment.toJsonString());
         RequestBody body = RequestBody.create(JSON, aliment.toJsonString());
         if (update) {
@@ -245,6 +248,7 @@ public class AlimentRestClient {
                     }
                 });
             } catch (Exception e) {
+                Log.d(TAG, e.toString());
                 notifyFailure(e, req, onErrorListener);
             }
         }

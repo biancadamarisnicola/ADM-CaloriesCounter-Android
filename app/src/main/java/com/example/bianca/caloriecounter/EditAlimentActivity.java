@@ -1,6 +1,8 @@
 package com.example.bianca.caloriecounter;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -11,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.bianca.caloriecounter.content.Aliment;
+import com.example.bianca.caloriecounter.util.DialogUtils;
 import com.example.bianca.caloriecounter.util.OnErrorListener;
 import com.example.bianca.caloriecounter.util.OnSuccessListener;
 
@@ -54,7 +57,11 @@ public class EditAlimentActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Log.d(TAG, "save aliment");
-                saveAliment(view);
+                try {
+                    saveAliment(view);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -90,7 +97,7 @@ public class EditAlimentActivity extends AppCompatActivity {
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
-    private void saveAliment(final View view) {
+    private void saveAliment(final View view) throws InterruptedException {
         alimentName.setError(null);
         calories.setError(null);
         proteins.setError(null);
@@ -140,6 +147,7 @@ public class EditAlimentActivity extends AppCompatActivity {
             // form field with an error.
             focusView.requestFocus();
         } else {
+            Thread.sleep(1000);
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             mProgressView.setVisibility(VISIBLE);
@@ -167,12 +175,35 @@ public class EditAlimentActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                     public void run() {
-                                        mProgressView.setVisibility(View.INVISIBLE);
+                                       showError(e);
                                 }
                             });
                         }
                     }
             );
+        }
+    }
+
+    private void showError(Exception e) {
+        Log.e(TAG, "showError", e);
+        if (mProgressView.getVisibility() == View.VISIBLE) {
+            mProgressView.setVisibility(View.INVISIBLE);
+        }
+        if (isNetworkConnected()) {
+            DialogUtils.showError(this, e);
+        }else{
+            DialogUtils.showError(this, new Exception("You are offline. Please check your internet connection"));
+        }
+    }
+
+    protected boolean isNetworkConnected() {
+        try {
+            ConnectivityManager mConnectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            return mConnectivityManager.getActiveNetworkInfo() != null;
+
+        }catch (NullPointerException e){
+            return false;
+
         }
     }
 

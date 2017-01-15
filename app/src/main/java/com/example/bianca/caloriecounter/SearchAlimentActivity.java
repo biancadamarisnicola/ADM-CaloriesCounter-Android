@@ -2,11 +2,16 @@ package com.example.bianca.caloriecounter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -19,6 +24,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.bianca.caloriecounter.content.Aliment;
+import com.example.bianca.caloriecounter.content.database.DatabaseSettings;
+import com.example.bianca.caloriecounter.service.NetworkManager;
 import com.example.bianca.caloriecounter.util.Cancellable;
 import com.example.bianca.caloriecounter.util.DialogUtils;
 import com.example.bianca.caloriecounter.util.OnErrorListener;
@@ -26,7 +33,7 @@ import com.example.bianca.caloriecounter.util.OnSuccessListener;
 
 import java.util.List;
 
-public class SearchAlimentActivity extends AppCompatActivity implements SensorEventListener {
+public class SearchAlimentActivity extends AppCompatActivity implements SensorEventListener, NetworkManager.NetworkStateReceiverListener {
 
     public static final String TAG = SearchAlimentActivity.class.getSimpleName();
     private App myApp;
@@ -36,6 +43,10 @@ public class SearchAlimentActivity extends AppCompatActivity implements SensorEv
     private RecyclerView recyclerView;
     private boolean alimentLoaded;
     private AlimentRecyclerViewAdapter adapter;
+    private NetworkManager networkManager;
+    private ConnectivityManager connectivityManager;
+    NetworkInfo netInfo;
+    DatabaseSettings databaseSettings;
 
     private SensorManager sensorManager;
     private TextView count;
@@ -50,6 +61,10 @@ public class SearchAlimentActivity extends AppCompatActivity implements SensorEv
 
         count = (TextView) findViewById(R.id.step_count);
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        networkManager = new NetworkManager();
+        networkManager.addListener(this);
+        this.registerReceiver(networkManager, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
+        connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 //        Intent intent = getIntent();
 //        String message = intent.getStringExtra(App.EXTRA_MESSAGE);
 //        TextView textView = new TextView(this);
@@ -59,6 +74,22 @@ public class SearchAlimentActivity extends AppCompatActivity implements SensorEv
         setupFloatingActionBar();
         setupRecyclerView();
         checkTwoPaneMode();
+    }
+
+    public boolean isNetworkOnline() {
+        return connectivityManager.getActiveNetworkInfo() != null;
+    }
+
+    @Override
+    public void networkAvailable() {
+        Log.d(TAG, "Network connection is available");
+    /* TODO: Your connection-oriented stuff here */
+    }
+
+    @Override
+    public void networkUnavailable() {
+        Log.d(TAG, "Network connection is unavailable");
+    /* TODO: Your disconnection-oriented stuff here */
     }
 
     @Override
@@ -80,8 +111,10 @@ public class SearchAlimentActivity extends AppCompatActivity implements SensorEv
         activityRunning = false;
         // if you unregister the last listener, the hardware will stop detecting step events
 //        sensorManager.unregisterListener(this);
+        this.unregisterReceiver(networkManager);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onStart() {
         Log.d(TAG, "onSTart");
@@ -90,38 +123,47 @@ public class SearchAlimentActivity extends AppCompatActivity implements SensorEv
         myApp.getAlimentManager().subscribeChangeListener();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void startGetAlimentsAsync() {
         if (alimentLoaded) {
             Log.d(TAG, "start startGetAlimentsAsync - content already loaded, return");
             return;
         }
         showLoadingIndicator();
-        getAlimentsAsyncCall = myApp.getAlimentManager().getAlimentsAsync(
-                new OnSuccessListener<List<Aliment>>() {
-                    @Override
-                    public void onSuccess(final List<Aliment> alim) {
-                        Log.d(TAG, "getAlimentsAsyncCall - success");
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                showContent(alim);
-                            }
-                        });
+        if (isNetworkOnline()) {
+            Log.d(TAG, "Online network");
+            getAlimentsAsyncCall = myApp.getAlimentManager().getAlimentsAsync(
+                    new OnSuccessListener<List<Aliment>>() {
+                        @Override
+                        public void onSuccess(final List<Aliment> alim) {
+                            Log.d(TAG, "getAlimentsAsyncCall - success");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showContent(alim);
+                                }
+                            });
+                        }
+                    }, new OnErrorListener() {
+                        @Override
+                        public void onError(final Exception e) {
+                            Log.d(TAG, "getAlimentsAsyncCall - error");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showError(e);
+                                }
+                            });
+                        }
                     }
-                }, new OnErrorListener() {
-                    @Override
-                    public void onError(final Exception e) {
-                        Log.d(TAG, "getAlimentsAsyncCall - error");
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                showError(e);
-                            }
-                        });
-                    }
-                }
-        );
+            );
+        } else {
+            Log.d(TAG, "Offline network");
+            final List<Aliment> aliments = myApp.getAlimentManager().getAlimentsFromDatabase();
+            Log.d(TAG, "getAlimentsFromDatabase - success");
+            showContent(aliments);
     }
+}
 
     private void showError(Exception e) {
         Log.e(TAG, "showError", e);
@@ -132,7 +174,7 @@ public class SearchAlimentActivity extends AppCompatActivity implements SensorEv
     }
 
     private void showContent(List<Aliment> aliments) {
-        Log.d(TAG, "showContent");
+        Log.d(TAG, "showContent: size "+aliments.size());
         adapter = new AlimentRecyclerViewAdapter(aliments);
         recyclerView.setAdapter(adapter);
         contentLoadingView.setVisibility(View.GONE);
@@ -199,7 +241,7 @@ public class SearchAlimentActivity extends AppCompatActivity implements SensorEv
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (activityRunning) {
-            Log.d(TAG, "pedometer "+String.valueOf(event.values[0]));
+            Log.d(TAG, "pedometer " + String.valueOf(event.values[0]));
             count.setText(String.valueOf(event.values[0]));
         }
     }
@@ -209,78 +251,78 @@ public class SearchAlimentActivity extends AppCompatActivity implements SensorEv
 
     }
 
-    private class AlimentRecyclerViewAdapter extends RecyclerView.Adapter<AlimentRecyclerViewAdapter.ViewHolder> {
+private class AlimentRecyclerViewAdapter extends RecyclerView.Adapter<AlimentRecyclerViewAdapter.ViewHolder> {
 
-        private final List<Aliment> aliments;
+    private final List<Aliment> aliments;
 
-        public AlimentRecyclerViewAdapter(List<Aliment> alims) {
-            aliments = alims;
-        }
+    public AlimentRecyclerViewAdapter(List<Aliment> alims) {
+        aliments = alims;
+    }
 
-        // Create new views (invoked by the layout manager)
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.aliment_list_content, parent, false);
-            return new ViewHolder(view);
-        }
+    // Create new views (invoked by the layout manager)
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.aliment_list_content, parent, false);
+        return new ViewHolder(view);
+    }
 
-        // Replace the contents of a view (invoked by the layout manager)
-        @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            Log.d(TAG, "onBindViewHolder "+aliments.get(position));
-            holder.item = aliments.get(position);
-            holder.idView.setText(aliments.get(position).getName());
-            holder.contentView.setText(" - calories: "+String.valueOf(aliments.get(position).getCalories()));
+    // Replace the contents of a view (invoked by the layout manager)
+    @Override
+    public void onBindViewHolder(final ViewHolder holder, int position) {
+        Log.d(TAG, "onBindViewHolder " + aliments.get(position));
+        holder.item = aliments.get(position);
+        holder.idView.setText(aliments.get(position).getName());
+        holder.contentView.setText(" - calories: " + String.valueOf(aliments.get(position).getCalories()));
 
-            holder.view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (twoPane) {
-                        Bundle arguments = new Bundle();
-                        arguments.putString(AlimentDetailFragment.ALIMENT_NAME, holder.item.getName());
-                        AlimentDetailFragment fragment = new AlimentDetailFragment();
-                        fragment.setArguments(arguments);
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.aliment_detail_container, fragment)
-                                .commit();
-                    } else {
-                        Context context = v.getContext();
-                        Intent intent = new Intent(context, AlimentDetailActivity.class);
-                        intent.putExtra(AlimentDetailFragment.ALIMENT_NAME, holder.item.getName());
-                        context.startActivity(intent);
-                    }
-                }
-            });
-        }
-
-        // Return the size of your dataset (invoked by the layout manager)
-        @Override
-        public int getItemCount() {
-            return aliments.size();
-        }
-
-
-        // Provide a reference to the views for each data item
-        // Complex data items may need more than one view per item, and
-        // you provide access to all the views for a data item in a view holder
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            public final View view;
-            public final TextView idView;
-            public final TextView contentView;
-            public Aliment item;
-
-            public ViewHolder(View view) {
-                super(view);
-                this.view = view;
-                idView = (TextView) view.findViewById(R.id.name);
-                contentView = (TextView) view.findViewById(R.id.calories);
-            }
-
+        holder.view.setOnClickListener(new View.OnClickListener() {
             @Override
-            public String toString() {
-                return super.toString() + " '" + contentView.getText() + "'";
+            public void onClick(View v) {
+                if (twoPane) {
+                    Bundle arguments = new Bundle();
+                    arguments.putString(AlimentDetailFragment.ALIMENT_NAME, holder.item.getName());
+                    AlimentDetailFragment fragment = new AlimentDetailFragment();
+                    fragment.setArguments(arguments);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.aliment_detail_container, fragment)
+                            .commit();
+                } else {
+                    Context context = v.getContext();
+                    Intent intent = new Intent(context, AlimentDetailActivity.class);
+                    intent.putExtra(AlimentDetailFragment.ALIMENT_NAME, holder.item.getName());
+                    context.startActivity(intent);
+                }
             }
+        });
+    }
+
+    // Return the size of your dataset (invoked by the layout manager)
+    @Override
+    public int getItemCount() {
+        return aliments.size();
+    }
+
+
+    // Provide a reference to the views for each data item
+    // Complex data items may need more than one view per item, and
+    // you provide access to all the views for a data item in a view holder
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        public final View view;
+        public final TextView idView;
+        public final TextView contentView;
+        public Aliment item;
+
+        public ViewHolder(View view) {
+            super(view);
+            this.view = view;
+            idView = (TextView) view.findViewById(R.id.name);
+            contentView = (TextView) view.findViewById(R.id.calories);
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + " '" + contentView.getText() + "'";
         }
     }
+}
 }

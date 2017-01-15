@@ -21,14 +21,23 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_pedometer" />
+    <FrameLayout
+        android:id="@+id/pedometer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:background="#F2E1E1"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        <include layout="@layout/content_pedometer" />
+    </FrameLayout>
 
 
     <FrameLayout
         android:id="@+id/frameLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="445dp"
         android:layout_marginTop="25dp"
+        android:layout_gravity="bottom"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <ProgressBar

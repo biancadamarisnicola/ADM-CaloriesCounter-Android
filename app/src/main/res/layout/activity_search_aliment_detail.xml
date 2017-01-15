@@ -43,13 +43,15 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior" >
     </android.support.v4.widget.NestedScrollView>
 
+
     <ImageView
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_gravity="bottom|center"
         app:srcCompat="@drawable/healthy_food"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="30dp"
         android:id="@+id/warning_image" />
+
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/edit_fab"
